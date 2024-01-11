@@ -1,13 +1,73 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
+    <title>Быстрый старт. Размещение интерактивной карты на странице</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=97f976c6-cd44-4f4d-a00e-42ff12b8f747&lang=ru_RU" type="text/javascript"></script>
+	<script src="perlin.js"></script>
   </head>
+
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <div id="map" style="width: 600px; height: 400px"></div>
+	<div id="panorama" style="width: 100%; height: 400px;"></div>
+
+<script>
+    ymaps.ready(init);
+
+    function init() {
+		ymaps.panorama.createPlayer(
+			'panorama', // ID DOM-элемента, в котором будет открыт плеер
+			[55.65336771654587,37.52289044973747]    // Координаты панорамы, которую мы хотим открыть
+		).done(function (player) {
+				// Create 100 points
+				var points = createPoints(100);
+
+				// Add points to the panorama
+				points.forEach(function (point) {
+					document.querySelector('.ymaps-2-1-79-panorama-screen').appendChild(point.element);
+					animatePoint(point);
+			});
+		});
+
+
+        function createPoints(count) {
+            var result = [];
+            for (var i = 0; i < count; i++) {
+                var point = createPoint();
+                result.push({
+                    element: point,
+					offsetX: Math.random() * 1000, // Random initial offset
+                    offsetY: Math.random() * 1000 // Random initial offset                });
+				})
+			}
+            return result;
+        }
+
+        function createPoint() {
+            var point = document.createElement('div');
+            point.style.position = 'absolute';
+            point.style.width = '5px';
+            point.style.height = '5px';
+            point.style.backgroundColor = 'red';
+            point.style.borderRadius = '50%';
+            point.style.transformOrigin = 'center center';
+            return point;
+        }
+
+        function animatePoint(point) {
+            setInterval(function () {
+				point.offsetX += 0.01;
+                point.offsetY += 0.01;
+
+                var x = (noise.simplex2(point.offsetX, 0) + 1) * document.querySelector('.ymaps-2-1-79-panorama-screen').offsetWidth / 2;
+                var y = (noise.simplex2(0, point.offsetY) + 1) * document.querySelector('.ymaps-2-1-79-panorama-screen').offsetHeight / 2;
+
+                point.element.style.left = x + 'px';
+                point.element.style.top = y + 'px';
+            }, 50);
+        }
+    }
+</script>
   </body>
 </html>
+
