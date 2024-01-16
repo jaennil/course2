@@ -9,10 +9,10 @@ interface Point {
 function init() {
   ymaps.panorama
     .createPlayer(
-      "panorama", // ID DOM-элемента, в котором будет открыт плеер
-      [55.65336771654587, 37.52289044973747] // Координаты панорамы, которую мы хотим открыть
+      "panorama",
+      [55.65336771654587, 37.52289044973747]
     )
-    .done((player) => {
+    .done((player: any) => {
       const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
       if (canvas === null) {
         console.error("cant find canvas");
