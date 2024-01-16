@@ -1,3 +1,5 @@
+// #TODO: make map and panorama take half site
+
 declare const ymaps: any;
 
 interface Point {

@@ -1,41 +1,45 @@
 function init() {
-    ymaps.panorama
-        .createPlayer("panorama", // ID DOM-элемента, в котором будет открыт плеер
-    [55.65336771654587, 37.52289044973747] // Координаты панорамы, которую мы хотим открыть
-    )
-        .done(function (player) {
-        var canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
-        if (canvas === null) {
-            console.error("cant find canvas");
-            return;
-        }
-        var width = canvas.clientWidth;
-        var height = canvas.clientHeight;
-        var points = createPoints(100, width, height);
-        var bearing = player.getDirection()[0];
-        var pitch = player.getDirection()[1];
-        player.events.add("directionchange", function () {
-            var new_bearing = player.getDirection()[0];
-            var new_pitch = player.getDirection()[1];
-            var delta_bearing = bearing - new_bearing;
-            var delta_pitch = pitch - new_pitch;
-            var horizontal_span = player.getSpan()[0];
-            var vertical_span = player.getSpan()[1];
-            console.log(horizontal_span);
-            console.log((delta_bearing / horizontal_span) * width);
+    var myMap = new ymaps.Map("map", {
+        center: [55.65336771654587, 37.52289044973747],
+        zoom: 18,
+        type: "yandex#map",
+        controls: ["typeSelector"],
+    });
+    myMap.getPanoramaManager().then(function (manager) {
+        manager.enableLookup();
+        manager.openPlayer(myMap.getCenter());
+        manager.events.add("openplayer", function () {
+            var player = manager.getPlayer();
+            var canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
+            if (canvas === null) {
+                console.error("cant find canvas");
+                return;
+            }
+            var width = canvas.clientWidth;
+            var height = canvas.clientHeight;
+            var points = createPoints(100, width, height);
             points.forEach(function (point) {
-                point.x += (delta_bearing / horizontal_span) * width;
-                point.y += (delta_pitch / vertical_span) * height;
+                canvas.appendChild(point.element);
+                animatePoint(point);
             });
-            bearing = new_bearing;
-            pitch = new_pitch;
-            console.log(player.getDirection());
-            console.log(player.getSpan());
-        });
-        // Add points to the panorama
-        points.forEach(function (point) {
-            canvas.appendChild(point.element);
-            animatePoint(point);
+            var bearing = player.getDirection()[0];
+            var pitch = player.getDirection()[1];
+            player.events.add("directionchange", function () {
+                var new_bearing = player.getDirection()[0];
+                var new_pitch = player.getDirection()[1];
+                var delta_bearing = bearing - new_bearing;
+                var delta_pitch = pitch - new_pitch;
+                var horizontal_span = player.getSpan()[0];
+                var vertical_span = player.getSpan()[1];
+                points.forEach(function (point) {
+                    point.x += (delta_bearing / horizontal_span) * width;
+                    point.y += (delta_pitch / vertical_span) * height;
+                    point.element.style.left = point.x + "px";
+                    point.element.style.top = point.y + "px";
+                });
+                bearing = new_bearing;
+                pitch = new_pitch;
+            });
         });
     });
     function createPoints(count, width, height) {
@@ -66,7 +70,7 @@ function init() {
             point.y += Math.random() * 2 - 1;
             point.element.style.left = point.x + "px";
             point.element.style.top = point.y + "px";
-        }, 5);
+        }, 1);
     }
 }
 ymaps.ready(init);
