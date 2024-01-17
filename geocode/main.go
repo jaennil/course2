@@ -4,14 +4,40 @@ import (
 	// "database/sql"
 	// "errors"
 	// "fmt"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
+
 	// "strings"
 
-	// "github.com/codingsince1985/geo-golang/yandex"
+	"net/url"
+
 	_ "github.com/go-sql-driver/mysql"
 )
+
+type TwoGisResponse struct {
+	Meta struct {
+		APIVersion string `json:"api_version"`
+		Code       int    `json:"code"`
+		IssueDate  string `json:"issue_date"`
+	} `json:"meta"`
+	Result struct {
+		Items []struct {
+			AddressName string `json:"address_name"`
+			FullName    string `json:"full_name"`
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			Point       struct {
+				Lat float64 `json:"lat"`
+				Lon float64 `json:"lon"`
+			} `json:"point"`
+			PurposeName string `json:"purpose_name"`
+			Type        string `json:"type"`
+		} `json:"items"`
+		Total int `json:"total"`
+	} `json:"result"`
+}
 
 const (
 	dbUser     = "your_db_user"
@@ -25,20 +51,6 @@ type Point struct {
 }
 
 func geocodeAddress(address string) (*Point, error) {
-	// geocoder := yandex.Geocoder("97f976c6-cd44-4f4d-a00e-42ff12b8f747")
-	// location, err := geocoder.Geocode(address)
-	// if err != nil {
-	// 	log.Println("error occured while geocoding address:", err)
-	// 	return nil, err
-	// }
-	// if location == nil {
-	// 	fmt.Println("got <nil> location")
-	// 	return nil, errors.New("got <nil> location")
-	// }
-	//
-	// fmt.Printf("%s location is (%.6f, %.6f)\n", address, location.Lat, location.Lng)
-	// return &Point{lat: location.Lat, lng: location.Lng}, nil
-	// address = strings.Replace(address, " ", "+", -1)
 	twogis_apikey := "20834bec-5f7b-40af-b623-9e4d1010a93e"
 	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + address + "&fields=items.point&key=" + twogis_apikey
 	log.Println("url", url)
@@ -50,14 +62,18 @@ func geocodeAddress(address string) (*Point, error) {
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-		return nil, err
+	log.Println(string(body))
+
+	var twoGisResponse TwoGisResponse
+	if err := json.Unmarshal(body, &twoGisResponse); err != nil { // Parse []byte to go struct pointer
+		log.Println("Can not unmarshal JSON")
 	}
-	//Convert the body to type string
-	sb := string(body)
-	log.Printf(sb)
-	return &Point{}, nil
+	log.Println(len(twoGisResponse.Result.Items))
+	lat :=twoGisResponse.Result.Items[0].Point.Lat
+	lng :=twoGisResponse.Result.Items[0].Point.Lon
+	log.Println(twoGisResponse.Result.Items[0].Point.Lat)
+	log.Println(twoGisResponse.Result.Items[0].Point.Lon)
+	return &Point{lat: lat, lng: lng}, nil
 }
 
 // func updateCoordinates(db *sql.DB) error {
@@ -117,5 +133,5 @@ func main() {
 	// 	log.Fatal("Error updating coordinates:", err)
 	// }
 
-	log.Println(geocodeAddress("Российская Федерация, город Москва, внутригородская территория муниципальный округ Орехово-Борисово Южное, Гурьевский проезд, дом 9, корпус 1"))
+	log.Println(geocodeAddress(url.QueryEscape("Российская Федерация, город Москва, внутригородская территория муниципальный округ Орехово-Борисово Южное, Гурьевский проезд, дом 9, корпус 1")))
 }
