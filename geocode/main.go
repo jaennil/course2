@@ -7,7 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
+	// "strings"
 
 	// "github.com/codingsince1985/geo-golang/yandex"
 	_ "github.com/go-sql-driver/mysql"
@@ -38,21 +38,17 @@ func geocodeAddress(address string) (*Point, error) {
 	//
 	// fmt.Printf("%s location is (%.6f, %.6f)\n", address, location.Lat, location.Lng)
 	// return &Point{lat: location.Lat, lng: location.Lng}, nil
-	address = strings.Replace(address, " ", "+", -1)
-	url := "https://geocode-maps.yandex.ru/1.x/?apikey=97f976c6-cd44-4f4d-a00e-42ff12b8f747&geocode=" + address
+	// address = strings.Replace(address, " ", "+", -1)
+	twogis_apikey := "20834bec-5f7b-40af-b623-9e4d1010a93e"
+	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + address + "&fields=items.point&key=" + twogis_apikey
 	log.Println("url", url)
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Println("error occured while creating new request:", err)
+		log.Println("error occured while http.Get:", err)
 		return nil, err
 	}
-	req.Header.Add("Referer", "127.0.0.1")
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Println("error occured while client.Do geocode url:", err)
-		return nil, err
-	}
+	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatalln(err)
@@ -121,5 +117,5 @@ func main() {
 	// 	log.Fatal("Error updating coordinates:", err)
 	// }
 
-	log.Println(geocodeAddress("бул Мухаммед Бин Рашид, дом 1"))
+	log.Println(geocodeAddress("Российская Федерация, город Москва, внутригородская территория муниципальный округ Орехово-Борисово Южное, Гурьевский проезд, дом 9, корпус 1"))
 }
