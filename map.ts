@@ -18,11 +18,13 @@ function init() {
 
   myMap.getPanoramaManager().then(function (manager: any) {
     manager.enableLookup();
-    manager.openPlayer(myMap.getCenter());
 
     manager.events.add("openplayer", function () {
       const player = manager.getPlayer();
-      const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
+
+      const canvas = document.querySelector(
+        ".ymaps-2-1-79-panorama-screen"
+      ) as HTMLElement;
       if (canvas === null) {
         console.error("cant find canvas");
         return;
