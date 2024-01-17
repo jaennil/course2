@@ -7,10 +7,17 @@ function init() {
         type: "yandex#map",
         controls: ["typeSelector"],
     });
+    var myGeocoder = ymaps.geocode("Петрозаводск");
+    myGeocoder.then(function (res) {
+        alert("Координаты объекта :" + res.geoObjects.get(0).geometry.getCoordinates());
+    }, function (err) {
+        alert("Ошибка" + err);
+    });
     myMap.getPanoramaManager().then(function (manager) {
         manager.enableLookup();
         manager.events.add("openplayer", function () {
             const player = manager.getPlayer();
+            console.log(player.getPanorama().getPosition());
             const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
             if (canvas === null) {
                 console.error("cant find canvas");

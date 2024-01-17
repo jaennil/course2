@@ -16,11 +16,27 @@ function init() {
     controls: ["typeSelector"],
   });
 
+  var myGeocoder = ymaps.geocode("Петрозаводск");
+
+  myGeocoder.then(
+    function (res: any) {
+      alert(
+        "Координаты объекта :" + res.geoObjects.get(0).geometry.getCoordinates()
+      );
+    },
+
+    function (err: any) {
+      alert("Ошибка" + err);
+    }
+  );
+
   myMap.getPanoramaManager().then(function (manager: any) {
     manager.enableLookup();
 
     manager.events.add("openplayer", function () {
       const player = manager.getPlayer();
+
+      console.log(player.getPanorama().getPosition());
 
       const canvas = document.querySelector(
         ".ymaps-2-1-79-panorama-screen"
