@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	// "context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -9,7 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
+	// "time"
 
 	"net/url"
 
@@ -55,7 +55,7 @@ func coordsByAddress(address string) (*Point, error) {
 	urlEncodedAddress := url.QueryEscape(address)
 
 	twogis_apikey := "20834bec-5f7b-40af-b623-9e4d1010a93e"
-	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + urlEncodedAddress + "&fields=items.point&key=" + twogis_apikey
+	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + urlEncodedAddress + "&fields=items.point&key=" + twogis_apikey + "&location=37.617617,55.755811"
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -74,7 +74,7 @@ func coordsByAddress(address string) (*Point, error) {
 		log.Println("Can not unmarshal JSON")
 	}
 
-	if len(twoGisResponse.Result.Items) == 0 {
+	if twoGisResponse.Result.Total == 0 {
 		log.Println("cant find address", address)
 		return nil, errors.New("cant find address")
 	}
@@ -103,19 +103,16 @@ func main() {
 	handleError(err, "error occured while connecting to database:")
 	defer db.Close()
 
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelfunc()
-
-	err = db.PingContext(ctx)
+	err = db.Ping()
 	handleError(err, "Errors %s pinging DB")
 
-	_, err = db.ExecContext(ctx, "ALTER TABLE pollution DROP COLUMN latitude, DROP COLUMN longitude")
-	handleError(err, "error while altering table pollution")
+	// _, err = db.ExecContext(ctx, "ALTER TABLE pollution DROP COLUMN latitude, DROP COLUMN longitude")
+	// handleError(err, "error while altering table pollution")
+	//
+	// _, err = db.ExecContext(ctx, "ALTER TABLE pollution ADD COLUMN latitude float, ADD COLUMN longitude float")
+	// handleError(err, "error while altering table pollution")
 
-	_, err = db.ExecContext(ctx, "ALTER TABLE pollution ADD COLUMN latitude float, ADD COLUMN longitude float")
-	handleError(err, "error while altering table pollution")
-
-	rows, err := db.QueryContext(ctx, "SELECT ID, AdmArea, District, Location FROM pollution")
+	rows, err := db.Query("SELECT ID, AdmArea, District, Location FROM pollution WHERE latitude IS NULL OR longitude IS NULL")
 	handleError(err, "error occured while quering pollution table")
 	defer rows.Close()
 
@@ -125,25 +122,28 @@ func main() {
 		err := rows.Scan(&locationid, &admarea, &district, &location)
 		handleError(err, "error while scanning rows")
 
-		point, err := coordsByAddress("Москва" + admarea + " " + district + " " + location)
+		point, err := coordsByAddress("Москва " + admarea + " " + district + " " + location)
 		if err == nil {
-			updateCoords(db, point, locationid)
+			err := updateCoords(db, point, locationid)
+			handleError(err, "error occured while updatingCoords")
 			continue
 		}
 
-		point, err = coordsByAddress("Москва" + district + " " + location)
+		point, err = coordsByAddress("Москва " + district + " " + location)
 		if err == nil {
-			updateCoords(db, point, locationid)
+			err := updateCoords(db, point, locationid)
+			handleError(err, "error occured while updatingCoords")
 			continue
 		}
 
-		point, err = coordsByAddress("Москва" + location)
+		point, err = coordsByAddress("Москва " + location)
 		if err == nil {
-			updateCoords(db, point, locationid)
+			err := updateCoords(db, point, locationid)
+			handleError(err, "error occured while updatingCoords")
 			continue
 		}
 
-		log.Println("cant find address location:", admarea+" "+district+" "+location)
+		log.Println(err, admarea+" "+district+" "+location)
 	}
 }
 
