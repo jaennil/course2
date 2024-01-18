@@ -19,6 +19,8 @@ function init() {
     controls: ["typeSelector"],
   });
 
+  console.log(getCoords())
+
   myMap.getPanoramaManager().then(function (manager: any) {
     manager.enableLookup();
 
@@ -62,6 +64,9 @@ function init() {
         let vertical_span = player.getSpan()[1];
 
         points.forEach((point) => {
+          if (horizontal_span == 0) {
+            return;
+          }
           point.x += (delta_bearing / horizontal_span) * width;
           point.y += (delta_pitch / vertical_span) * height;
           point.element.style.left = point.x + "px";
@@ -76,37 +81,31 @@ function init() {
 
   async function getPDK<T>(coords: Coords): Promise<T> {
     const response = await fetch(
-		  "http://127.0.0.1:8082/api/v1/pdk/" + coords.lat + "," + coords.lng,
-		  {
-			  method: "GET",
-			  headers: {
-				  Accept: "application/json",
-			  },
-		  }
-	  );
-	  if (!response.ok) {
-		  throw new Error(response.statusText);
-	  }
-	  return await (response.json() as Promise<T>);
+      "http://127.0.0.1:8082/api/v1/pdk/" + coords.lat + "," + coords.lng,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
+    return await (response.json() as Promise<T>);
   }
 
-  async function getCoords() {
-    const response = await window.fetch("http://127.0.0.1:8082/api/v1/pdk/", {
+  async function getCoords<T>(): Promise<T> {
+    const response = await fetch("http://127.0.0.1:8082/api/v1/pdk", {
       method: "GET",
       headers: {
         Accept: "application/json",
       },
     });
-
-    const { data, errors } = await response.json();
-    console.log(data);
-    console.log(errors);
-    if (response.ok) {
-      console.log("ok response");
-      // console.log(data);
-    } else {
-      console.error("not ok response");
+    if (!response.ok) {
+      throw new Error(response.statusText);
     }
+    return await (response.json() as Promise<T>);
   }
 
   function createPoints(count: number, width: number, height: number) {

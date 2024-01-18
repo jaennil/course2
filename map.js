@@ -15,6 +15,7 @@ function init() {
         type: "yandex#map",
         controls: ["typeSelector"],
     });
+    console.log(getCoords());
     myMap.getPanoramaManager().then(function (manager) {
         manager.enableLookup();
         manager.events.add("openplayer", function () {
@@ -45,6 +46,9 @@ function init() {
                 let horizontal_span = player.getSpan()[0];
                 let vertical_span = player.getSpan()[1];
                 points.forEach((point) => {
+                    if (horizontal_span == 0) {
+                        return;
+                    }
                     point.x += (delta_bearing / horizontal_span) * width;
                     point.y += (delta_pitch / vertical_span) * height;
                     point.element.style.left = point.x + "px";
@@ -71,22 +75,16 @@ function init() {
     }
     function getCoords() {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield window.fetch("http://127.0.0.1:8082/api/v1/pdk/", {
+            const response = yield fetch("http://127.0.0.1:8082/api/v1/pdk", {
                 method: "GET",
                 headers: {
                     Accept: "application/json",
                 },
             });
-            const { data, errors } = yield response.json();
-            console.log(data);
-            console.log(errors);
-            if (response.ok) {
-                console.log("ok response");
-                // console.log(data);
+            if (!response.ok) {
+                throw new Error(response.statusText);
             }
-            else {
-                console.error("not ok response");
-            }
+            return yield response.json();
         });
     }
     function createPoints(count, width, height) {

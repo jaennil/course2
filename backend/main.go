@@ -23,9 +23,14 @@ const (
 var db *sql.DB
 
 type Response struct {
-	Id int
-	Avg float64
+	Id    int
+	Avg   float64
 	Pdkss float64
+}
+
+type jaennilPoint struct {
+	Lat float64
+	Lng float64
 }
 
 func main() {
@@ -55,15 +60,41 @@ func handleError(err error, message string) {
 
 func handlePdk(w http.ResponseWriter, r *http.Request) {
 	enableCors(&w)
+	w.Header().Set("Content-Type", "application/json")
+	log.Println(w.Header())
 
 	log.Println(db)
 
 	url := r.URL.Path
 	log.Println(url)
 	splitted := strings.Split(url, "/")
-	if len(splitted) == 3 {
-		log.Println("all points")
+	log.Println(len(splitted))
+
+	if len(splitted) == 5 {
+		log.Println("multiple poinths")
+		var result []jaennilPoint
+		rows, err := db.Query("SELECT latitude, longitude FROM pollution WHERE latitude IS NOT NULL")
+		handleError(err, "error occured while quering pollution table")
+		defer rows.Close()
+
+		var latitude, longitude float64
+		for rows.Next() {
+			err := rows.Scan(&latitude, &longitude)
+			handleError(err, "error while scanning rows")
+			result = append(result, jaennilPoint{Lat: latitude, Lng: longitude})
+		}
+		log.Println(result)
+		jData, err := json.Marshal(result)
+		if err != nil {
+			log.Println(err)
+		}
+
+		log.Println(jData)
+		log.Println(string(jData))
+		w.Write(jData)
+		return
 	}
+
 	latlong := splitted[len(splitted)-1]
 	splittedLatlong := strings.Split(latlong, ",")
 	targetlat, err := strconv.ParseFloat(splittedLatlong[0], 32)
@@ -96,7 +127,6 @@ func handlePdk(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	log.Println(minid, minpdkss, minpdk)
-	w.Header().Set("Content-Type", "application/json")
 
 	myResponse := Response{Id: minid, Avg: minpdk, Pdkss: minpdkss}
 
@@ -112,5 +142,5 @@ func dsn() string {
 }
 
 func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Origin", "http://7.tcp.eu.ngrok.io:14225")
 }
