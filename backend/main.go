@@ -2,14 +2,16 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
-	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/kellydunn/golang-geo"
 )
@@ -35,9 +37,15 @@ type jaennilPoint struct {
 }
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/pdk/", handlePdk)
-
+	router := gin.New()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://dubrovskih.ru"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	}))
+	router.GET("/api/v1/pdk", handlePdk)
+	router.GET("/api/v1/pdk/:latlng", pdkByCoords)
 	envAddress := os.Getenv("address")
 	if envAddress == "" {
 		envAddress = "127.0.0.1"
@@ -54,7 +62,15 @@ func main() {
 	handleError(err, "Errors %s pinging DB")
 	log.Printf("Connected to DB %s successfully\n", dbname)
 
-	http.ListenAndServe(serverAddress, mux)
+	httpServer := &http.Server{
+		Addr:           serverAddress,
+		Handler:        router,
+		MaxHeaderBytes: 1 << 20, // 1 MB
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+	}
+
+	httpServer.ListenAndServe()
 }
 
 func handleError(err error, message string) {
@@ -63,44 +79,9 @@ func handleError(err error, message string) {
 	}
 }
 
-func handlePdk(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	w.Header().Set("Content-Type", "application/json")
-	log.Println(w.Header())
-
-	log.Println(db)
-
-	url := r.URL.Path
-	log.Println(url)
-	splitted := strings.Split(url, "/")
-	log.Println(len(splitted))
-
-	if len(splitted) == 5 {
-		log.Println("multiple poinths")
-		var result []jaennilPoint
-		rows, err := db.Query("SELECT latitude, longitude FROM pollution WHERE latitude IS NOT NULL")
-		handleError(err, "error occured while quering pollution table")
-		defer rows.Close()
-
-		var latitude, longitude float64
-		for rows.Next() {
-			err := rows.Scan(&latitude, &longitude)
-			handleError(err, "error while scanning rows")
-			result = append(result, jaennilPoint{Lat: latitude, Lng: longitude})
-		}
-		log.Println(result)
-		jData, err := json.Marshal(result)
-		if err != nil {
-			log.Println(err)
-		}
-
-		log.Println(jData)
-		log.Println(string(jData))
-		w.Write(jData)
-		return
-	}
-
-	latlong := splitted[len(splitted)-1]
+func pdkByCoords(c *gin.Context) {
+	latlong := c.Param("latlong")
+	log.Println("latlong", latlong)
 	splittedLatlong := strings.Split(latlong, ",")
 	targetlat, err := strconv.ParseFloat(splittedLatlong[0], 32)
 	handleError(err, "error occured while converting target lat from string to float")
@@ -134,12 +115,23 @@ func handlePdk(w http.ResponseWriter, r *http.Request) {
 	log.Println(minid, minpdkss, minpdk)
 
 	myResponse := Response{Id: minid, Avg: minpdk, Pdkss: minpdkss}
+	c.JSON(http.StatusOK, myResponse)
+}
 
-	jData, err := json.Marshal(myResponse)
-	if err != nil {
-		log.Println(err)
+func handlePdk(c *gin.Context) {
+	log.Println("multiple poinths")
+	var result []jaennilPoint
+	rows, err := db.Query("SELECT latitude, longitude FROM pollution WHERE latitude IS NOT NULL")
+	handleError(err, "error occured while quering pollution table")
+	defer rows.Close()
+
+	var latitude, longitude float64
+	for rows.Next() {
+		err := rows.Scan(&latitude, &longitude)
+		handleError(err, "error while scanning rows")
+		result = append(result, jaennilPoint{Lat: latitude, Lng: longitude})
 	}
-	w.Write(jData)
+	c.JSON(http.StatusOK, result)
 }
 
 func dsn() string {
@@ -147,5 +139,15 @@ func dsn() string {
 }
 
 func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "http://7.tcp.eu.ngrok.io:14225")
+	address := os.Getenv("address")
+	if address == "" {
+		address = "127.0.0.1"
+	}
+	log.Println(address)
+	(*w).Header().Set("Access-Control-Allow-Origin", "http://"+address)
+	allowedHeaders := "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,X-CSRF-Token"
+	(*w).Header().Set("Access-Control-Allow-Origin", "http://dubrovskih.ru")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", allowedHeaders)
+
 }
