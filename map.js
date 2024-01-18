@@ -33,6 +33,7 @@ function init() {
                     color = "green";
                 }
             });
+            console.log(color);
             const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
             if (canvas === null) {
                 console.error("cant find canvas");

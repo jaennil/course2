@@ -42,6 +42,8 @@ function init() {
         }
       });
 
+	  console.log(color)
+
       const canvas = document.querySelector(
         ".ymaps-2-1-79-panorama-screen"
       ) as HTMLElement;
