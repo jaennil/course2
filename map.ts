@@ -81,7 +81,7 @@ function init() {
 
   async function getPDK<T>(coords: Coords): Promise<T> {
     const response = await fetch(
-      "http://127.0.0.1:8082/api/v1/pdk/" + coords.lat + "," + coords.lng,
+      "http://dubrovskih.ru:3000/api/v1/pdk/" + coords.lat + "," + coords.lng,
       {
         method: "GET",
         headers: {
@@ -96,7 +96,7 @@ function init() {
   }
 
   async function getCoords<T>(): Promise<T> {
-    const response = await fetch("http://127.0.0.1:8082/api/v1/pdk", {
+    const response = await fetch("http://dubrovskih.ru:3000/api/v1/pdk", {
       method: "GET",
       headers: {
         Accept: "application/json",

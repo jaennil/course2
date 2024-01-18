@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/kellydunn/golang-geo"
@@ -37,7 +38,11 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/pdk/", handlePdk)
 
-	serverAddress := "127.0.0.1:8082"
+	envAddress := os.Getenv("address")
+	if envAddress == "" {
+		envAddress = "127.0.0.1"
+	}
+	serverAddress := envAddress + ":3000"
 	log.Println("starting server at", serverAddress)
 
 	var err error
