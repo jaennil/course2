@@ -21,10 +21,10 @@ function init() {
 
   console.log(getCoords());
 
-  myMap.getPanoramaManager().then(function (manager: any) {
+  myMap.getPanoramaManager().then((manager: any) => {
     manager.enableLookup();
 
-    manager.events.add("openplayer", async function () {
+    manager.events.add("openplayer", async () => {
       const player = manager.getPlayer();
 
       const pos = player.getPanorama().getPosition();
