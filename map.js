@@ -61,7 +61,7 @@ function init() {
     });
     function getPDK(coords) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch("http://127.0.0.1:8082/api/v1/pdk/" + coords.lat + "," + coords.lng, {
+            const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk/" + coords.lat + "," + coords.lng, {
                 method: "GET",
                 headers: {
                     Accept: "application/json",
@@ -75,7 +75,7 @@ function init() {
     }
     function getCoords() {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch("http://127.0.0.1:8082/api/v1/pdk", {
+            const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk", {
                 method: "GET",
                 headers: {
                     Accept: "application/json",
