@@ -19,7 +19,7 @@ function init() {
     controls: ["typeSelector"],
   });
 
-  console.log(getCoords())
+  console.log(getCoords());
 
   myMap.getPanoramaManager().then(function (manager: any) {
     manager.enableLookup();
@@ -30,7 +30,9 @@ function init() {
       const pos = player.getPanorama().getPosition();
       const coords: Coords = { lat: pos[0], lng: pos[1] };
       console.log(coords);
-      console.log(getPDK(coords));
+      getPDK(coords).then((data) => {
+        console.log(data);
+      });
 
       const canvas = document.querySelector(
         ".ymaps-2-1-79-panorama-screen"
