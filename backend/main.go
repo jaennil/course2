@@ -32,11 +32,11 @@ func main() {
 
 	err = db.PingContext(ctx)
 	handleError(err, "Errors %s pinging DB")
+	log.Printf("Connected to DB %s successfully\n", dbname)
 
 	rows, err := db.QueryContext(ctx, "SELECT Location FROM pollution")
 	handleError(err, "error occured while quering pollution table")
 	defer rows.Close()
-	log.Printf("Connected to DB %s successfully\n", dbname)
 
 	for rows.Next() {
 		var location string

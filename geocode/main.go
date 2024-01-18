@@ -1,19 +1,26 @@
 package main
 
 import (
-	// "database/sql"
-	// "errors"
-	// "fmt"
+	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
-
-	// "strings"
+	"time"
 
 	"net/url"
 
 	_ "github.com/go-sql-driver/mysql"
+)
+
+const (
+	username = "jaennil"
+	password = "naen"
+	hostname = "127.0.0.1:3306"
+	dbname   = "course2"
 )
 
 type TwoGisResponse struct {
@@ -39,21 +46,17 @@ type TwoGisResponse struct {
 	} `json:"result"`
 }
 
-const (
-	dbUser     = "your_db_user"
-	dbPassword = "your_db_password"
-	dbName     = "your_db_name"
-)
-
 type Point struct {
 	lat float64
 	lng float64
 }
 
-func geocodeAddress(address string) (*Point, error) {
+func coordsByAddress(address string) (*Point, error) {
+	urlEncodedAddress := url.QueryEscape(address)
+
 	twogis_apikey := "20834bec-5f7b-40af-b623-9e4d1010a93e"
-	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + address + "&fields=items.point&key=" + twogis_apikey
-	log.Println("url", url)
+	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + urlEncodedAddress + "&fields=items.point&key=" + twogis_apikey
+
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Println("error occured while http.Get:", err)
@@ -62,76 +65,94 @@ func geocodeAddress(address string) (*Point, error) {
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	log.Println(string(body))
+	if err != nil {
+		handleError(err, "error occured while io.ReadAll(resp.Body):")
+	}
 
 	var twoGisResponse TwoGisResponse
-	if err := json.Unmarshal(body, &twoGisResponse); err != nil { // Parse []byte to go struct pointer
+	if err := json.Unmarshal(body, &twoGisResponse); err != nil {
 		log.Println("Can not unmarshal JSON")
 	}
-	log.Println(len(twoGisResponse.Result.Items))
-	lat :=twoGisResponse.Result.Items[0].Point.Lat
-	lng :=twoGisResponse.Result.Items[0].Point.Lon
-	log.Println(twoGisResponse.Result.Items[0].Point.Lat)
-	log.Println(twoGisResponse.Result.Items[0].Point.Lon)
+
+	if len(twoGisResponse.Result.Items) == 0 {
+		log.Println("cant find address", address)
+		return nil, errors.New("cant find address")
+	}
+
+	lat := twoGisResponse.Result.Items[0].Point.Lat
+	lng := twoGisResponse.Result.Items[0].Point.Lon
 	return &Point{lat: lat, lng: lng}, nil
 }
 
-// func updateCoordinates(db *sql.DB) error {
-// 	rows, err := db.Query("SELECT id, address FROM addresses")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer rows.Close()
-//
-// 	// Prepare a statement for updating coordinates
-// 	updateStmt, err := db.Prepare("UPDATE addresses SET latitude=?, longitude=? WHERE id=?")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer updateStmt.Close()
-//
-// 	// Loop through each row in the result set
-// 	for rows.Next() {
-// 		var id int
-// 		var address string
-//
-// 		err := rows.Scan(&id, &address)
-// 		if err != nil {
-// 			log.Println("Error scanning row:", err)
-// 			continue
-// 		}
-//
-// 		// Geocode the address to get its coordinates
-// 		coordinates, err := geocodeAddress(address)
-// 		if err != nil {
-// 			log.Println("Error geocoding address:", err)
-// 			continue
-// 		}
-//
-// 		// Update the database with the obtained coordinates
-// 		_, err = updateStmt.Exec(coordinates.Lat(), coordinates.Lng(), id)
-// 		if err != nil {
-// 			log.Println("Error updating coordinates:", err)
-// 			continue
-// 		}
-// 	}
-//
-// 	return nil
-// }
+func updateCoords(db *sql.DB, point *Point, locationid int) error {
+	updateStmt, err := db.Prepare("UPDATE pollution SET latitude=?, longitude=? WHERE ID=?")
+	if err != nil {
+		return err
+	}
+	defer updateStmt.Close()
+
+	_, err = updateStmt.Exec(point.lat, point.lng, locationid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func main() {
-	// // Connect to the database
-	// db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s", dbUser, dbPassword, dbName))
-	// if err != nil {
-	// 	log.Fatal("Error connecting to the database:", err)
-	// }
-	// defer db.Close()
-	//
-	// // Update coordinates in the database
-	// err = updateCoordinates(db)
-	// if err != nil {
-	// 	log.Fatal("Error updating coordinates:", err)
-	// }
+	db, err := sql.Open("mysql", dsn())
+	handleError(err, "error occured while connecting to database:")
+	defer db.Close()
 
-	log.Println(geocodeAddress(url.QueryEscape("Российская Федерация, город Москва, внутригородская территория муниципальный округ Орехово-Борисово Южное, Гурьевский проезд, дом 9, корпус 1")))
+	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelfunc()
+
+	err = db.PingContext(ctx)
+	handleError(err, "Errors %s pinging DB")
+
+	_, err = db.ExecContext(ctx, "ALTER TABLE pollution DROP COLUMN latitude, DROP COLUMN longitude")
+	handleError(err, "error while altering table pollution")
+
+	_, err = db.ExecContext(ctx, "ALTER TABLE pollution ADD COLUMN latitude float, ADD COLUMN longitude float")
+	handleError(err, "error while altering table pollution")
+
+	rows, err := db.QueryContext(ctx, "SELECT ID, AdmArea, District, Location FROM pollution")
+	handleError(err, "error occured while quering pollution table")
+	defer rows.Close()
+
+	for rows.Next() {
+		var admarea, district, location string
+		var locationid int
+		err := rows.Scan(&locationid, &admarea, &district, &location)
+		handleError(err, "error while scanning rows")
+
+		point, err := coordsByAddress("Москва" + admarea + " " + district + " " + location)
+		if err == nil {
+			updateCoords(db, point, locationid)
+			continue
+		}
+
+		point, err = coordsByAddress("Москва" + district + " " + location)
+		if err == nil {
+			updateCoords(db, point, locationid)
+			continue
+		}
+
+		point, err = coordsByAddress("Москва" + location)
+		if err == nil {
+			updateCoords(db, point, locationid)
+			continue
+		}
+
+		log.Println("cant find address location:", admarea+" "+district+" "+location)
+	}
+}
+
+func handleError(err error, message string) {
+	if err != nil {
+		log.Println(message, err)
+	}
+}
+
+func dsn() string {
+	return fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, hostname, dbname)
 }
