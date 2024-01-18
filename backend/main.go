@@ -1,14 +1,13 @@
 package main
 
 import (
-	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/kellydunn/golang-geo"
@@ -22,6 +21,12 @@ const (
 )
 
 var db *sql.DB
+
+type Response struct {
+	Id int
+	Avg float64
+	Pdkss float64
+}
 
 func main() {
 	mux := http.NewServeMux()
@@ -57,7 +62,7 @@ func handlePdk(w http.ResponseWriter, r *http.Request) {
 	log.Println(url)
 	splitted := strings.Split(url, "/")
 	if len(splitted) == 3 {
-
+		log.Println("all points")
 	}
 	latlong := splitted[len(splitted)-1]
 	splittedLatlong := strings.Split(latlong, ",")
@@ -67,17 +72,18 @@ func handlePdk(w http.ResponseWriter, r *http.Request) {
 	handleError(err, "error occured while converting target lng from string to float")
 	targetCoords := geo.NewPoint(targetlat, targetlng)
 
-	var minpdk float64
+	var minpdk, minpdkss float64
+	var minid int
 	minDistance := float64(^uint(0) >> 1) // Set initial minimum distance to maximum float64 value
 
-	rows, err := db.Query("SELECT ID, latitude, longitude, MonthlyAverage FROM pollution WHERE latitude IS NOT NULL")
+	rows, err := db.Query("SELECT ID, latitude, longitude, MonthlyAverage, MonthlyAveragePDKss FROM pollution WHERE latitude IS NOT NULL")
 	handleError(err, "error occured while quering pollution table")
 	defer rows.Close()
 
-	var latitude, longitude, currentpdk float64
+	var latitude, longitude, currentpdk, pdkss float64
 	var id int
 	for rows.Next() {
-		err := rows.Scan(&id, &latitude, &longitude, &currentpdk)
+		err := rows.Scan(&id, &latitude, &longitude, &currentpdk, &pdkss)
 		handleError(err, "error while scanning rows")
 		coords := geo.NewPoint(latitude, longitude)
 		distance := targetCoords.GreatCircleDistance(coords)
@@ -85,9 +91,20 @@ func handlePdk(w http.ResponseWriter, r *http.Request) {
 		if distance < minDistance {
 			minDistance = distance
 			minpdk = currentpdk
+			minpdkss = pdkss
+			minid = id
 		}
 	}
-	log.Println(minpdk)
+	log.Println(minid, minpdkss, minpdk)
+	w.Header().Set("Content-Type", "application/json")
+
+	myResponse := Response{Id: minid, Avg: minpdk, Pdkss: minpdkss}
+
+	jData, err := json.Marshal(myResponse)
+	if err != nil {
+		log.Println(err)
+	}
+	w.Write(jData)
 }
 
 func dsn() string {
