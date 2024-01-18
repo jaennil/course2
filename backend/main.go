@@ -80,7 +80,7 @@ func handleError(err error, message string) {
 }
 
 func pdkByCoords(c *gin.Context) {
-	latlong := c.Param("latlong")
+	latlong := c.Param("latlng")
 	log.Println("latlong", latlong)
 	splittedLatlong := strings.Split(latlong, ",")
 	targetlat, err := strconv.ParseFloat(splittedLatlong[0], 32)
@@ -136,18 +136,4 @@ func handlePdk(c *gin.Context) {
 
 func dsn() string {
 	return fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, hostname, dbname)
-}
-
-func enableCors(w *http.ResponseWriter) {
-	address := os.Getenv("address")
-	if address == "" {
-		address = "127.0.0.1"
-	}
-	log.Println(address)
-	(*w).Header().Set("Access-Control-Allow-Origin", "http://"+address)
-	allowedHeaders := "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,X-CSRF-Token"
-	(*w).Header().Set("Access-Control-Allow-Origin", "http://dubrovskih.ru")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", allowedHeaders)
-
 }
