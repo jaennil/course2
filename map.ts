@@ -1,11 +1,14 @@
-// #TODO: make map and panorama take half site
-
 declare const ymaps: any;
 
 interface Point {
   element: HTMLDivElement;
   x: number;
   y: number;
+}
+
+interface Coords {
+  lat: number;
+  lng: number;
 }
 
 function init() {
@@ -16,27 +19,17 @@ function init() {
     controls: ["typeSelector"],
   });
 
-  var myGeocoder = ymaps.geocode("Петрозаводск");
-
-  myGeocoder.then(
-    function (res: any) {
-      alert(
-        "Координаты объекта :" + res.geoObjects.get(0).geometry.getCoordinates()
-      );
-    },
-
-    function (err: any) {
-      alert("Ошибка" + err);
-    }
-  );
-
   myMap.getPanoramaManager().then(function (manager: any) {
     manager.enableLookup();
 
     manager.events.add("openplayer", function () {
       const player = manager.getPlayer();
 
-      console.log(player.getPanorama().getPosition());
+      // !!
+      const pos = player.getPanorama().getPosition();
+      const coords: Coords = { lat: pos[0], lng: pos[1] };
+      console.log(coords);
+      console.log(getPDK(coords));
 
       const canvas = document.querySelector(
         ".ymaps-2-1-79-panorama-screen"
@@ -81,6 +74,28 @@ function init() {
       });
     });
   });
+
+  async function getPDK(coords: Coords) {
+    const response = await window.fetch(
+      "http://127.0.0.1/api/v1/pdk/" + coords.lat + "," + coords.lng,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    const { data, errors } = await response.json();
+    console.log(data);
+    console.log(errors);
+    if (response.ok) {
+      console.log("ok response");
+      // console.log(data);
+    } else {
+      console.error("not ok response");
+    }
+  }
 
   function createPoints(count: number, width: number, height: number) {
     const result: Point[] = [];

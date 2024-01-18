@@ -1,5 +1,13 @@
 "use strict";
-// #TODO: make map and panorama take half site
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 function init() {
     const myMap = new ymaps.Map("map", {
         center: [55.65336771654587, 37.52289044973747],
@@ -7,17 +15,15 @@ function init() {
         type: "yandex#map",
         controls: ["typeSelector"],
     });
-    var myGeocoder = ymaps.geocode("Петрозаводск");
-    myGeocoder.then(function (res) {
-        alert("Координаты объекта :" + res.geoObjects.get(0).geometry.getCoordinates());
-    }, function (err) {
-        alert("Ошибка" + err);
-    });
     myMap.getPanoramaManager().then(function (manager) {
         manager.enableLookup();
         manager.events.add("openplayer", function () {
             const player = manager.getPlayer();
-            console.log(player.getPanorama().getPosition());
+            // !!
+            const pos = player.getPanorama().getPosition();
+            const coords = { lat: pos[0], lng: pos[1] };
+            console.log(coords);
+            console.log(getPDK(coords));
             const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
             if (canvas === null) {
                 console.error("cant find canvas");
@@ -50,6 +56,26 @@ function init() {
             });
         });
     });
+    function getPDK(coords) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield window.fetch("http://127.0.0.1/api/v1/pdk/" + coords.lat + "," + coords.lng, {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                },
+            });
+            const { data, errors } = yield response.json();
+            console.log(data);
+            console.log(errors);
+            if (response.ok) {
+                console.log("ok response");
+                // console.log(data);
+            }
+            else {
+                console.error("not ok response");
+            }
+        });
+    }
     function createPoints(count, width, height) {
         const result = [];
         for (let i = 0; i < count; i++) {
