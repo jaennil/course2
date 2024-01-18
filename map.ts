@@ -25,7 +25,6 @@ function init() {
     manager.events.add("openplayer", function () {
       const player = manager.getPlayer();
 
-      // !!
       const pos = player.getPanorama().getPosition();
       const coords: Coords = { lat: pos[0], lng: pos[1] };
       console.log(coords);
@@ -75,16 +74,29 @@ function init() {
     });
   });
 
-  async function getPDK(coords: Coords) {
-    const response = await window.fetch(
-      "http://127.0.0.1:8082/api/v1/pdk/" + coords.lat + "," + coords.lng,
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      }
-    );
+  async function getPDK<T>(coords: Coords): Promise<T> {
+    const response = await fetch(
+		  "http://127.0.0.1:8082/api/v1/pdk/" + coords.lat + "," + coords.lng,
+		  {
+			  method: "GET",
+			  headers: {
+				  Accept: "application/json",
+			  },
+		  }
+	  );
+	  if (!response.ok) {
+		  throw new Error(response.statusText);
+	  }
+	  return await (response.json() as Promise<T>);
+  }
+
+  async function getCoords() {
+    const response = await window.fetch("http://127.0.0.1:8082/api/v1/pdk/", {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
     const { data, errors } = await response.json();
     console.log(data);
