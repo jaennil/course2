@@ -23,8 +23,15 @@ function init() {
             const pos = player.getPanorama().getPosition();
             const coords = { lat: pos[0], lng: pos[1] };
             console.log(coords);
+            let color = "";
             getPDK(coords).then((data) => {
                 console.log(data);
+                if (data.Avg > data.Pdkss) {
+                    color = "red";
+                }
+                else {
+                    color = "green";
+                }
             });
             const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
             if (canvas === null) {
@@ -33,7 +40,7 @@ function init() {
             }
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
-            const points = createPoints(100, width, height);
+            const points = createPoints(100, width, height, color);
             points.forEach((point) => {
                 canvas.appendChild(point.element);
                 animatePoint(point);
@@ -89,10 +96,10 @@ function init() {
             return yield response.json();
         });
     }
-    function createPoints(count, width, height) {
+    function createPoints(count, width, height, color) {
         const result = [];
         for (let i = 0; i < count; i++) {
-            const point_div = createPointDiv();
+            const point_div = createPointDiv(color);
             const point = {
                 element: point_div,
                 x: Math.random() * width * 4,
@@ -102,12 +109,12 @@ function init() {
         }
         return result;
     }
-    function createPointDiv() {
+    function createPointDiv(color) {
         const point = document.createElement("div");
         point.style.position = "absolute";
         point.style.width = "5px";
         point.style.height = "5px";
-        point.style.backgroundColor = "red";
+        point.style.backgroundColor = color;
         point.style.borderRadius = "50%";
         return point;
     }

@@ -30,8 +30,16 @@ function init() {
       const pos = player.getPanorama().getPosition();
       const coords: Coords = { lat: pos[0], lng: pos[1] };
       console.log(coords);
-      getPDK(coords).then((data) => {
+
+      let color: string = "";
+
+      getPDK(coords).then((data: any) => {
         console.log(data);
+        if (data.Avg > data.Pdkss) {
+          color = "red";
+        } else {
+          color = "green";
+        }
       });
 
       const canvas = document.querySelector(
@@ -45,7 +53,7 @@ function init() {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
-      const points: Point[] = createPoints(100, width, height);
+      const points: Point[] = createPoints(100, width, height, color);
 
       points.forEach((point) => {
         canvas.appendChild(point.element);
@@ -110,10 +118,15 @@ function init() {
     return await (response.json() as Promise<T>);
   }
 
-  function createPoints(count: number, width: number, height: number) {
+  function createPoints(
+    count: number,
+    width: number,
+    height: number,
+    color: string
+  ) {
     const result: Point[] = [];
     for (let i = 0; i < count; i++) {
-      const point_div = createPointDiv();
+      const point_div = createPointDiv(color);
       const point: Point = {
         element: point_div,
         x: Math.random() * width * 4,
@@ -124,12 +137,12 @@ function init() {
     return result;
   }
 
-  function createPointDiv(): HTMLDivElement {
+  function createPointDiv(color: string): HTMLDivElement {
     const point = document.createElement("div");
     point.style.position = "absolute";
     point.style.width = "5px";
     point.style.height = "5px";
-    point.style.backgroundColor = "red";
+    point.style.backgroundColor = color;
     point.style.borderRadius = "50%";
     return point;
   }
