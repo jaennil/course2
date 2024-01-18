@@ -19,53 +19,54 @@ function init() {
     myMap.getPanoramaManager().then(function (manager) {
         manager.enableLookup();
         manager.events.add("openplayer", function () {
-            const player = manager.getPlayer();
-            const pos = player.getPanorama().getPosition();
-            const coords = { lat: pos[0], lng: pos[1] };
-            console.log(coords);
-            let color = "";
-            getPDK(coords).then((data) => {
+            return __awaiter(this, void 0, void 0, function* () {
+                const player = manager.getPlayer();
+                const pos = player.getPanorama().getPosition();
+                const coords = { lat: pos[0], lng: pos[1] };
+                console.log(coords);
+                let color = "";
+                const data = yield getPDK(coords);
                 console.log(data);
-                if (data.Avg > data.Pdkss) {
+                if (data.Avg >= data.Pdkss) {
                     color = "red";
                 }
                 else {
                     color = "green";
                 }
-            });
-            console.log(color);
-            const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
-            if (canvas === null) {
-                console.error("cant find canvas");
-                return;
-            }
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-            const points = createPoints(100, width, height, color);
-            points.forEach((point) => {
-                canvas.appendChild(point.element);
-                animatePoint(point);
-            });
-            let bearing = player.getDirection()[0];
-            let pitch = player.getDirection()[1];
-            player.events.add("directionchange", function () {
-                const new_bearing = player.getDirection()[0];
-                const new_pitch = player.getDirection()[1];
-                let delta_bearing = bearing - new_bearing;
-                let delta_pitch = pitch - new_pitch;
-                let horizontal_span = player.getSpan()[0];
-                let vertical_span = player.getSpan()[1];
+                console.log(color);
+                const canvas = document.querySelector(".ymaps-2-1-79-panorama-screen");
+                if (canvas === null) {
+                    console.error("cant find canvas");
+                    return;
+                }
+                const width = canvas.clientWidth;
+                const height = canvas.clientHeight;
+                const points = createPoints(100, width, height, color);
                 points.forEach((point) => {
-                    if (horizontal_span == 0) {
-                        return;
-                    }
-                    point.x += (delta_bearing / horizontal_span) * width;
-                    point.y += (delta_pitch / vertical_span) * height;
-                    point.element.style.left = point.x + "px";
-                    point.element.style.top = point.y + "px";
+                    canvas.appendChild(point.element);
+                    animatePoint(point);
                 });
-                bearing = new_bearing;
-                pitch = new_pitch;
+                let bearing = player.getDirection()[0];
+                let pitch = player.getDirection()[1];
+                player.events.add("directionchange", function () {
+                    const new_bearing = player.getDirection()[0];
+                    const new_pitch = player.getDirection()[1];
+                    let delta_bearing = bearing - new_bearing;
+                    let delta_pitch = pitch - new_pitch;
+                    let horizontal_span = player.getSpan()[0];
+                    let vertical_span = player.getSpan()[1];
+                    points.forEach((point) => {
+                        if (horizontal_span == 0) {
+                            return;
+                        }
+                        point.x += (delta_bearing / horizontal_span) * width;
+                        point.y += (delta_pitch / vertical_span) * height;
+                        point.element.style.left = point.x + "px";
+                        point.element.style.top = point.y + "px";
+                    });
+                    bearing = new_bearing;
+                    pitch = new_pitch;
+                });
             });
         });
     });

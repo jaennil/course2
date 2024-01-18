@@ -24,7 +24,7 @@ function init() {
   myMap.getPanoramaManager().then(function (manager: any) {
     manager.enableLookup();
 
-    manager.events.add("openplayer", function () {
+    manager.events.add("openplayer", async function () {
       const player = manager.getPlayer();
 
       const pos = player.getPanorama().getPosition();
@@ -33,16 +33,16 @@ function init() {
 
       let color: string = "";
 
-      getPDK(coords).then((data: any) => {
-        console.log(data);
-        if (data.Avg > data.Pdkss) {
-          color = "red";
-        } else {
-          color = "green";
-        }
-      });
+      const data: any = await getPDK(coords);
 
-	  console.log(color)
+      console.log(data);
+      if (data.Avg >= data.Pdkss) {
+        color = "red";
+      } else {
+        color = "green";
+      }
+
+      console.log(color);
 
       const canvas = document.querySelector(
         ".ymaps-2-1-79-panorama-screen"
