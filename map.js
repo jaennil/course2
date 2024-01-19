@@ -66,8 +66,6 @@ function init() {
                 let bearing = player.getDirection()[0];
                 let pitch = player.getDirection()[1];
                 player.events.add("directionchange", function () {
-                    console.log(bearing);
-                    console.log(pitch);
                     const new_bearing = player.getDirection()[0];
                     const new_pitch = player.getDirection()[1];
                     let delta_bearing = bearing - new_bearing;
@@ -78,8 +76,14 @@ function init() {
                         if (horizontal_span == 0) {
                             return;
                         }
+                        if (vertical_span == 0) {
+                            return;
+                        }
                         point.x += (delta_bearing / horizontal_span) * width;
                         point.y -= (delta_pitch / vertical_span) * height;
+                        console.log("point", point.x, point.y);
+                        console.log("horspan", horizontal_span);
+                        console.log("d_bearing", delta_bearing);
                         point.element.style.left = point.x + "px";
                         point.element.style.top = point.y + "px";
                     });
