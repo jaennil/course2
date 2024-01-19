@@ -9,17 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 function init() {
-    const myMap = new ymaps.Map("map", {
-        center: [55.65336771654587, 37.52289044973747],
-        zoom: 18,
-        type: "yandex#map",
-        controls: ["typeSelector"],
-    });
-    console.log(getCoords());
-    myMap.getPanoramaManager().then(function (manager) {
-        manager.enableLookup();
-        manager.events.add("openplayer", function () {
-            return __awaiter(this, void 0, void 0, function* () {
+    return __awaiter(this, void 0, void 0, function* () {
+        let inputSearch = new ymaps.control.SearchControl({
+            options: {
+                size: 'large',
+                provider: 'yandex#search'
+            }
+        });
+        let myMap = new ymaps.Map("map", {
+            center: [55.65336771654587, 37.52289044973747],
+            zoom: 18,
+            type: "yandex#map",
+            controls: ["typeSelector", inputSearch],
+        });
+        let data = yield getCoords();
+        data.forEach(function (point) {
+            let placemark = new ymaps.Placemark([point.Lat, point.Lng], { hintContent: point.Period + " " + point.Avg + " мг/м3" }, { preset: 'islands#blueDotIcon' });
+            myMap.geoObjects.add(placemark);
+        });
+        myMap.getPanoramaManager().then((manager) => {
+            manager.enableLookup();
+            manager.events.add("openplayer", () => __awaiter(this, void 0, void 0, function* () {
                 const player = manager.getPlayer();
                 const pos = player.getPanorama().getPosition();
                 const coords = { lat: pos[0], lng: pos[1] };
@@ -67,66 +77,66 @@ function init() {
                     bearing = new_bearing;
                     pitch = new_pitch;
                 });
-            });
+            }));
         });
-    });
-    function getPDK(coords) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk/" + coords.lat + "," + coords.lng, {
-                method: "GET",
-                headers: {
-                    Accept: "application/json",
-                },
+        function getPDK(coords) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk/" + coords.lat + "," + coords.lng, {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                return yield response.json();
             });
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return yield response.json();
-        });
-    }
-    function getCoords() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk", {
-                method: "GET",
-                headers: {
-                    Accept: "application/json",
-                },
-            });
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return yield response.json();
-        });
-    }
-    function createPoints(count, width, height, color) {
-        const result = [];
-        for (let i = 0; i < count; i++) {
-            const point_div = createPointDiv(color);
-            const point = {
-                element: point_div,
-                x: Math.random() * width * 4,
-                y: Math.random() * height * 2,
-            };
-            result.push(point);
         }
-        return result;
-    }
-    function createPointDiv(color) {
-        const point = document.createElement("div");
-        point.style.position = "absolute";
-        point.style.width = "5px";
-        point.style.height = "5px";
-        point.style.backgroundColor = color;
-        point.style.borderRadius = "50%";
-        return point;
-    }
-    function animatePoint(point) {
-        setInterval(() => {
-            point.x += Math.random() * 2 - 1;
-            point.y += Math.random() * 2 - 1;
-            point.element.style.left = point.x + "px";
-            point.element.style.top = point.y + "px";
-        }, 1);
-    }
+        function getCoords() {
+            return __awaiter(this, void 0, void 0, function* () {
+                const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk", {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                return yield response.json();
+            });
+        }
+        function createPoints(count, width, height, color) {
+            const result = [];
+            for (let i = 0; i < count; i++) {
+                const point_div = createPointDiv(color);
+                const point = {
+                    element: point_div,
+                    x: Math.random() * width * 4,
+                    y: Math.random() * height * 2,
+                };
+                result.push(point);
+            }
+            return result;
+        }
+        function createPointDiv(color) {
+            const point = document.createElement("div");
+            point.style.position = "absolute";
+            point.style.width = "5px";
+            point.style.height = "5px";
+            point.style.backgroundColor = color;
+            point.style.borderRadius = "50%";
+            return point;
+        }
+        function animatePoint(point) {
+            setInterval(() => {
+                point.x += Math.random() * 2 - 1;
+                point.y += Math.random() * 2 - 1;
+                point.element.style.left = point.x + "px";
+                point.element.style.top = point.y + "px";
+            }, 1);
+        }
+    });
 }
 ymaps.ready(init);

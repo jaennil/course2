@@ -11,15 +11,26 @@ interface Coords {
   lng: number;
 }
 
-function init() {
-  const myMap = new ymaps.Map("map", {
+async function init() {
+  let inputSearch = new ymaps.control.SearchControl({
+	  options: {
+		  size: 'large',
+		  provider: 'yandex#search'
+	  }
+  })
+
+  let myMap = new ymaps.Map("map", {
     center: [55.65336771654587, 37.52289044973747],
     zoom: 18,
     type: "yandex#map",
-    controls: ["typeSelector"],
+    controls: ["typeSelector", inputSearch],
   });
 
-  console.log(getCoords());
+  let data: any = await getCoords();
+  data.forEach(function(point: any) {
+	  let placemark = new ymaps.Placemark([point.Lat, point.Lng], {hintContent: point.Period + " " + point.Avg + " мг/м3"}, { preset: 'islands#blueDotIcon' });
+	  myMap.geoObjects.add(placemark);
+  });
 
   myMap.getPanoramaManager().then((manager: any) => {
     manager.enableLookup();

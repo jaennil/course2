@@ -34,6 +34,8 @@ type Response struct {
 type jaennilPoint struct {
 	Lat float64
 	Lng float64
+	Avg float64
+	Period string
 }
 
 func main() {
@@ -121,15 +123,16 @@ func pdkByCoords(c *gin.Context) {
 func handlePdk(c *gin.Context) {
 	log.Println("multiple poinths")
 	var result []jaennilPoint
-	rows, err := db.Query("SELECT latitude, longitude FROM pollution WHERE latitude IS NOT NULL")
+	rows, err := db.Query("SELECT latitude, longitude, MonthlyAverage, Period FROM pollution WHERE latitude IS NOT NULL")
 	handleError(err, "error occured while quering pollution table")
 	defer rows.Close()
 
-	var latitude, longitude float64
+	var latitude, longitude, avg float64
+	var period string
 	for rows.Next() {
-		err := rows.Scan(&latitude, &longitude)
+		err := rows.Scan(&latitude, &longitude, &avg, &period)
 		handleError(err, "error while scanning rows")
-		result = append(result, jaennilPoint{Lat: latitude, Lng: longitude})
+		result = append(result, jaennilPoint{Lat: latitude, Lng: longitude, Avg: avg, Period: period})
 	}
 	c.JSON(http.StatusOK, result)
 }
