@@ -66,6 +66,8 @@ function init() {
                 let bearing = player.getDirection()[0];
                 let pitch = player.getDirection()[1];
                 player.events.add("directionchange", function () {
+                    console.log(bearing);
+                    console.log(pitch);
                     const new_bearing = player.getDirection()[0];
                     const new_pitch = player.getDirection()[1];
                     let delta_bearing = bearing - new_bearing;
@@ -77,7 +79,7 @@ function init() {
                             return;
                         }
                         point.x += (delta_bearing / horizontal_span) * width;
-                        point.y += (delta_pitch / vertical_span) * height;
+                        point.y -= (delta_pitch / vertical_span) * height;
                         point.element.style.left = point.x + "px";
                         point.element.style.top = point.y + "px";
                     });
@@ -120,8 +122,8 @@ function init() {
                 const point_div = createPointDiv(color);
                 const point = {
                     element: point_div,
-                    x: Math.random() * width * 4,
-                    y: Math.random() * height * 2,
+                    x: Math.random() * (width * 2 + width * 2) - width * 2,
+                    y: Math.random() * (height * 2 + height * 2) - height * 2,
                 };
                 result.push(point);
             }
