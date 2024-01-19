@@ -20,10 +20,22 @@ async function init() {
   })
 
   let myMap = new ymaps.Map("map", {
-    center: [55.65336771654587, 37.52289044973747],
-    zoom: 18,
+    center: [55.751244, 37.618423],
+    zoom: 17,
     type: "yandex#map",
-    controls: ["typeSelector", inputSearch],
+    controls: ["geolocationControl", "typeSelector", inputSearch],
+  });
+
+  var datasetButton = new ymaps.control.Button(
+	  '<b>Датасет</b>'
+  );
+
+  datasetButton.events.add('press', () => {
+	  window.open("https://data.mos.ru/opendata/2453", "_blank");
+  });
+
+  myMap.controls.add(datasetButton, {
+	  float: "left"
   });
 
   let data: any = await getCoords();
