@@ -54,7 +54,7 @@ type Point struct {
 func coordsByAddress(address string) (*Point, error) {
 	urlEncodedAddress := url.QueryEscape(address)
 
-	twogis_apikey := "20834bec-5f7b-40af-b623-9e4d1010a93e"
+	twogis_apikey := "208a9548-c5b5-4353-a198-276188c96d89"
 	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + urlEncodedAddress + "&fields=items.point&key=" + twogis_apikey + "&location=37.617617,55.755811"
 
 	resp, err := http.Get(url)
