@@ -78,7 +78,7 @@ async function init() {
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
 
-      const points: Point[] = createPoints(100, width, height, color);
+      const points: Point[] = createPoints(1000, width, height, color);
 
       points.forEach((point) => {
         canvas.appendChild(point.element);

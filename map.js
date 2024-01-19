@@ -58,7 +58,7 @@ function init() {
                 }
                 const width = canvas.clientWidth;
                 const height = canvas.clientHeight;
-                const points = createPoints(100, width, height, color);
+                const points = createPoints(1000, width, height, color);
                 points.forEach((point) => {
                     canvas.appendChild(point.element);
                     animatePoint(point);
