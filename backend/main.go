@@ -143,7 +143,7 @@ func coordsByAdmArea(c *gin.Context) {
 	log.Println("coord by adm area")
 	var result []jaennilPoint
 	admArea := c.Param("admArea")
-	rows, err := db.Query("SELECT latitude, longitude, MonthlyAverage, Period FROM pollution WHERE latitude IS NOT NULL AND AdmArea = " + admArea)
+	rows, err := db.Query("SELECT latitude, longitude, MonthlyAverage, Period FROM pollution WHERE latitude IS NOT NULL AND AdmArea = '" + admArea + "'")
 	handleError(err, "error occured while quering pollution table")
 	defer rows.Close()
 
