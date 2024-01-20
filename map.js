@@ -222,12 +222,16 @@ function init() {
             },
             items: listItems,
         });
+        let first = true;
         myListBox.events.add("click", function (e) {
             return __awaiter(this, void 0, void 0, function* () {
                 let item = e.get("target");
                 console.log(item);
                 if (item != myListBox) {
-                    myMap.geoObjects.removeAll();
+                    if (first) {
+                        myMap.geoObjects.removeAll();
+                        first = false;
+                    }
                     let coords = yield getCoordsByAdmArea(item.data.get("content"));
                     coords.forEach(function (point) {
                         let placemark = new ymaps.Placemark([point.Lat, point.Lng], {

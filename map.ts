@@ -225,7 +225,7 @@ function animatePoint(point: Point) {
 }
 
 async function getCoordsByAdmArea<T>(admArea: string): Promise<T> {
-	admArea = admArea.replace(/\+/g, "+")
+  admArea = admArea.replace(/\+/g, "+");
   const response = await fetch(
     "http://dubrovskih.ru:3000/api/v1/coords/" + encodeURI(admArea),
     {
@@ -283,11 +283,16 @@ async function init() {
     items: listItems,
   });
 
+  let first = true;
+
   myListBox.events.add("click", async function (e: any) {
     let item = e.get("target");
     console.log(item);
     if (item != myListBox) {
-      myMap.geoObjects.removeAll();
+      if (first) {
+        myMap.geoObjects.removeAll();
+        first = false;
+      }
       let coords: any = await getCoordsByAdmArea(item.data.get("content"));
       coords.forEach(function (point: any) {
         let placemark = new ymaps.Placemark(
