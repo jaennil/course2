@@ -140,7 +140,7 @@ func handlePdk(c *gin.Context) {
 
 func searchByAdmArea(c *gin.Context) {
 	log.Println("search by adm area")
-	var result []jaennilPoint
+	var result []string
 	rows, err := db.Query("SELECT DISTINCT AdmArea FROM pollution WHERE latitude IS NOT NULL")
 	handleError(err, "error occured while quering pollution table adm areas")
 	defer rows.Close()
