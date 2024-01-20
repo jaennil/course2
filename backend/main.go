@@ -49,7 +49,7 @@ func main() {
 	router.GET("/api/v1/pdk", handlePdk)
 	router.GET("/api/v1/pdk/:latlng", pdkByCoords)
 	router.GET("/api/v1/admAreas", searchByAdmArea)
-	router.GET("/api/v1/pdk/:admArea", coordsByAdmArea)
+	router.GET("/api/v1/coords/:admArea", coordsByAdmArea)
 	envAddress := os.Getenv("address")
 	if envAddress == "" {
 		envAddress = "127.0.0.1"
