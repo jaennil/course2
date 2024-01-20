@@ -171,6 +171,10 @@ function handlePlayerDirectionChange(
   });
 }
 
+function getRndInteger(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min) ) + min;
+}
+
 function createPoints(
   count: number,
   width: number,
@@ -179,7 +183,7 @@ function createPoints(
 ) {
   const result: Point[] = [];
   for (let i = 0; i < count; i++) {
-    const size = (Math.random() + 1) * 5;
+    const size = getRndInteger(1, 5)
     const point_div = createPointDiv(color, size);
 
     const point: Point = {
