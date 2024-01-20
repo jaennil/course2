@@ -171,6 +171,20 @@ function animatePoint(point) {
         point.element.style.top = point.y + "px";
     }, 1);
 }
+function getCoordsByAdmArea(admArea) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk/" + admArea, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+            },
+        });
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return yield response.json();
+    });
+}
 function getAdmAreas() {
     return __awaiter(this, void 0, void 0, function* () {
         const response = yield fetch("http://dubrovskih.ru:3000/api/v1/admAreas", {
@@ -188,6 +202,10 @@ function getAdmAreas() {
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         let myMap = createMap();
+        myMap.controls.add(createDatasetButton(), {
+            float: "left",
+        });
+        addPlacemarks(myMap);
         let areas = yield getAdmAreas();
         let listItems = [];
         areas.forEach((area) => {
@@ -195,15 +213,31 @@ function init() {
         });
         let myListBox = new ymaps.control.ListBox({
             data: {
-                content: 'Выбрать административный округ'
+                content: "Выбрать административный округ",
             },
-            items: listItems
+            items: listItems,
+        });
+        myListBox.events.add("click", function (e) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let item = e.get("target");
+                if (item != myListBox) {
+                    myMap.geoObjects.removeAll();
+                    let coords = yield getCoordsByAdmArea(item);
+                    coords.forEach(function (point) {
+                        let placemark = new ymaps.Placemark([point.Lat, point.Lng], {
+                            iconContent: "station.png",
+                            hintContent: "Период измерения: " +
+                                point.Period +
+                                "<br>Концентрация загрязняющих веществ: " +
+                                point.Avg +
+                                " мг/м3",
+                        }, { preset: "islands#blueDotIcon" });
+                        myMap.geoObjects.add(placemark);
+                    });
+                }
+            });
         });
         myMap.controls.add(myListBox);
-        myMap.controls.add(createDatasetButton(), {
-            float: "left",
-        });
-        addPlacemarks(myMap);
         myMap.getPanoramaManager().then((manager) => {
             manager.enableLookup();
             handlePlayerOpen(manager);

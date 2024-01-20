@@ -224,9 +224,9 @@ function animatePoint(point: Point) {
   }, 1);
 }
 
-async function getAdmAreas<T>(): Promise<T> {
+async function getCoordsByAdmArea<T>(admArea: string): Promise<T> {
   const response = await fetch(
-    "http://dubrovskih.ru:3000/api/v1/admAreas",
+    "http://dubrovskih.ru:3000/api/v1/pdk/" + admArea,
     {
       method: "GET",
       headers: {
@@ -240,30 +240,67 @@ async function getAdmAreas<T>(): Promise<T> {
   return await (response.json() as Promise<T>);
 }
 
+async function getAdmAreas<T>(): Promise<T> {
+  const response = await fetch("http://dubrovskih.ru:3000/api/v1/admAreas", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+  return await (response.json() as Promise<T>);
+}
+
 async function init() {
   let myMap = createMap();
-
-  let areas: any = await getAdmAreas()
-
-  let listItems: any = []
-  areas.forEach((area: any) => {
-	  listItems.push(new ymaps.control.ListBoxItem(area))
-  });
-
-    let myListBox = new ymaps.control.ListBox({
-      data: {
-        content: 'Выбрать административный округ'
-      },
-      items: listItems
-    });
-
-  myMap.controls.add(myListBox);
 
   myMap.controls.add(createDatasetButton(), {
     float: "left",
   });
 
   addPlacemarks(myMap);
+
+  let areas: any = await getAdmAreas();
+
+  let listItems: any = [];
+  areas.forEach((area: any) => {
+    listItems.push(new ymaps.control.ListBoxItem(area));
+  });
+
+  let myListBox = new ymaps.control.ListBox({
+    data: {
+      content: "Выбрать административный округ",
+    },
+    items: listItems,
+  });
+
+  myListBox.events.add("click", async function (e: any) {
+    let item = e.get("target");
+    if (item != myListBox) {
+      myMap.geoObjects.removeAll();
+      let coords: any = await getCoordsByAdmArea(item);
+      coords.forEach(function (point: any) {
+        let placemark = new ymaps.Placemark(
+          [point.Lat, point.Lng],
+          {
+            iconContent: "station.png",
+            hintContent:
+              "Период измерения: " +
+              point.Period +
+              "<br>Концентрация загрязняющих веществ: " +
+              point.Avg +
+              " мг/м3",
+          },
+          { preset: "islands#blueDotIcon" }
+        );
+        myMap.geoObjects.add(placemark);
+      });
+    }
+  });
+
+  myMap.controls.add(myListBox);
 
   myMap.getPanoramaManager().then((manager: any) => {
     manager.enableLookup();

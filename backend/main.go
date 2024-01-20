@@ -49,6 +49,7 @@ func main() {
 	router.GET("/api/v1/pdk", handlePdk)
 	router.GET("/api/v1/pdk/:latlng", pdkByCoords)
 	router.GET("/api/v1/admAreas", searchByAdmArea)
+	router.GET("/api/v1/pdk/:admArea", coordsByAdmArea)
 	envAddress := os.Getenv("address")
 	if envAddress == "" {
 		envAddress = "127.0.0.1"
@@ -125,6 +126,24 @@ func handlePdk(c *gin.Context) {
 	log.Println("multiple poinths")
 	var result []jaennilPoint
 	rows, err := db.Query("SELECT latitude, longitude, MonthlyAverage, Period FROM pollution WHERE latitude IS NOT NULL")
+	handleError(err, "error occured while quering pollution table")
+	defer rows.Close()
+
+	var latitude, longitude, avg float64
+	var period string
+	for rows.Next() {
+		err := rows.Scan(&latitude, &longitude, &avg, &period)
+		handleError(err, "error while scanning rows")
+		result = append(result, jaennilPoint{Lat: latitude, Lng: longitude, Avg: avg, Period: period})
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+func coordsByAdmArea(c *gin.Context) {
+	log.Println("coord by adm area")
+	var result []jaennilPoint
+	admArea := c.Param("admArea")
+	rows, err := db.Query("SELECT latitude, longitude, MonthlyAverage, Period FROM pollution WHERE latitude IS NOT NULL AND AdmArea = " + admArea)
 	handleError(err, "error occured while quering pollution table")
 	defer rows.Close()
 
