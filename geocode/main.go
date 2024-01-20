@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -9,7 +8,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	// "time"
 
 	"net/url"
 
@@ -54,7 +52,7 @@ type Point struct {
 func coordsByAddress(address string) (*Point, error) {
 	urlEncodedAddress := url.QueryEscape(address)
 
-	twogis_apikey := "208a9548-c5b5-4353-a198-276188c96d89"
+	twogis_apikey := "fb71aae4-ddd7-45ea-a016-2260f5a1ca4c"
 	url := "https://catalog.api.2gis.com/3.0/items/geocode?q=" + urlEncodedAddress + "&fields=items.point&key=" + twogis_apikey + "&location=37.617617,55.755811"
 
 	resp, err := http.Get(url)
@@ -85,7 +83,7 @@ func coordsByAddress(address string) (*Point, error) {
 }
 
 func updateCoords(db *sql.DB, point *Point, locationid int) error {
-	updateStmt, err := db.Prepare("UPDATE pollution SET latitude=?, longitude=? WHERE ID=?")
+	updateStmt, err := db.Prepare("UPDATE pollution SET latitude=?, longitude=? WHERE ID=? ORDER BY Period DESC")
 	if err != nil {
 		return err
 	}
