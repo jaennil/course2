@@ -70,7 +70,7 @@ function init() {
                 player.events.add("directionchange", function () {
                     const new_bearing = player.getDirection()[0];
                     const new_pitch = player.getDirection()[1];
-                    let delta_bearing = normalizeAngle(bearing - new_bearing);
+                    let delta_bearing = bearing - new_bearing;
                     let delta_pitch = pitch - new_pitch;
                     let horizontal_span = player.getSpan()[0];
                     let vertical_span = player.getSpan()[1];
@@ -94,9 +94,6 @@ function init() {
                 });
             }));
         });
-        function normalizeAngle(angle) {
-            return (angle % 360 + 360) % 360;
-        }
         function getPDK(coords) {
             return __awaiter(this, void 0, void 0, function* () {
                 const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk/" + coords.lat + "," + coords.lng, {
