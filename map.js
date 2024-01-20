@@ -173,6 +173,7 @@ function animatePoint(point) {
 }
 function getCoordsByAdmArea(admArea) {
     return __awaiter(this, void 0, void 0, function* () {
+        admArea = admArea.replace(/\+/g, "+");
         const response = yield fetch("http://dubrovskih.ru:3000/api/v1/coords/" + encodeURI(admArea), {
             method: "GET",
             headers: {

@@ -225,6 +225,7 @@ function animatePoint(point: Point) {
 }
 
 async function getCoordsByAdmArea<T>(admArea: string): Promise<T> {
+	admArea = admArea.replace(/\+/g, "+")
   const response = await fetch(
     "http://dubrovskih.ru:3000/api/v1/coords/" + encodeURI(admArea),
     {
