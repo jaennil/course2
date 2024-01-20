@@ -68,8 +68,13 @@ async function addPlacemarks(map: any) {
     let placemark = new ymaps.Placemark(
       [point.Lat, point.Lng],
       {
+        iconContent: "station.png",
         hintContent:
-          "Период измерения: " + point.Period + "<br>Концентрация загрязняющих веществ: " + point.Avg + " мг/м3",
+          "Период измерения: " +
+          point.Period +
+          "<br>Концентрация загрязняющих веществ: " +
+          point.Avg +
+          " мг/м3",
       },
       { preset: "islands#blueDotIcon" }
     );
@@ -127,7 +132,7 @@ function handlePlayerOpen(manager: any) {
 
     let bearing = player.getDirection()[0];
     let pitch = player.getDirection()[1];
-	handlePlayerDirectionChange(player, points, bearing, pitch, width, height)
+    handlePlayerDirectionChange(player, points, bearing, pitch, width, height);
   });
 }
 
@@ -137,7 +142,7 @@ function handlePlayerDirectionChange(
   bearing: number,
   pitch: number,
   width: number,
-  height: number,
+  height: number
 ) {
   player.events.add("directionchange", function () {
     const new_bearing = player.getDirection()[0];
@@ -172,7 +177,7 @@ function handlePlayerDirectionChange(
 }
 
 function getRndInteger(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min) ) + min;
+  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 function createPoints(
@@ -183,7 +188,7 @@ function createPoints(
 ) {
   const result: Point[] = [];
   for (let i = 0; i < count; i++) {
-    const size = getRndInteger(1, 5)
+    const size = getRndInteger(1, 5);
     const point_div = createPointDiv(color, size);
 
     const point: Point = {
