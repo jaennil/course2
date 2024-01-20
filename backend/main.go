@@ -32,9 +32,9 @@ type Response struct {
 }
 
 type jaennilPoint struct {
-	Lat float64
-	Lng float64
-	Avg float64
+	Lat    float64
+	Lng    float64
+	Avg    float64
 	Period string
 }
 

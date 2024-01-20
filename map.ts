@@ -13,11 +13,11 @@ interface Coords {
 
 async function init() {
   let inputSearch = new ymaps.control.SearchControl({
-	  options: {
-		  size: 'large',
-		  provider: 'yandex#search'
-	  }
-  })
+    options: {
+      size: "large",
+      provider: "yandex#search",
+    },
+  });
 
   let myMap = new ymaps.Map("map", {
     center: [55.751244, 37.618423],
@@ -26,22 +26,27 @@ async function init() {
     controls: ["geolocationControl", "typeSelector", inputSearch],
   });
 
-  var datasetButton = new ymaps.control.Button(
-	  '<b>Датасет</b>'
-  );
+  var datasetButton = new ymaps.control.Button("<b>Датасет</b>");
 
-  datasetButton.events.add('press', () => {
-	  window.open("https://data.mos.ru/opendata/2453", "_blank");
+  datasetButton.events.add("press", () => {
+    window.open("https://data.mos.ru/opendata/2453", "_blank");
   });
 
   myMap.controls.add(datasetButton, {
-	  float: "left"
+    float: "left",
   });
 
   let data: any = await getCoords();
-  data.forEach(function(point: any) {
-	  let placemark = new ymaps.Placemark([point.Lat, point.Lng], {hintContent: "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3"}, { preset: 'islands#blueDotIcon' });
-	  myMap.geoObjects.add(placemark);
+  data.forEach(function (point: any) {
+    let placemark = new ymaps.Placemark(
+      [point.Lat, point.Lng],
+      {
+        hintContent:
+          "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3",
+      },
+      { preset: "islands#blueDotIcon" }
+    );
+    myMap.geoObjects.add(placemark);
   });
 
   myMap.getPanoramaManager().then((manager: any) => {
@@ -92,8 +97,8 @@ async function init() {
         const new_bearing = player.getDirection()[0];
         const new_pitch = player.getDirection()[1];
 
-        let delta_bearing = bearing - new_bearing
-        let delta_pitch = pitch - new_pitch
+        let delta_bearing = bearing - new_bearing;
+        let delta_pitch = pitch - new_pitch;
 
         let horizontal_span = player.getSpan()[0];
         let vertical_span = player.getSpan()[1];
@@ -102,14 +107,14 @@ async function init() {
           if (horizontal_span == 0) {
             return;
           }
-	  if (vertical_span == 0) {
-		  return;
-	  }
+          if (vertical_span == 0) {
+            return;
+          }
           point.x += (delta_bearing / horizontal_span) * width;
           point.y -= (delta_pitch / vertical_span) * height;
-	  console.log("point", point.x, point.y)
-	  console.log("horspan", horizontal_span)
-	  console.log("d_bearing", delta_bearing)
+          console.log("point", point.x, point.y);
+          console.log("horspan", horizontal_span);
+          console.log("d_bearing", delta_bearing);
           point.element.style.left = point.x + "px";
           point.element.style.top = point.y + "px";
         });
@@ -160,8 +165,8 @@ async function init() {
       const point_div = createPointDiv(color);
       const point: Point = {
         element: point_div,
-        x: Math.random() * (width * 2 + width * 2) -width*2,
-        y: Math.random() * (height * 2 + height * 2) -height*2,
+        x: Math.random() * (width * 2 + width * 2) - width * 2,
+        y: Math.random() * (height * 2 + height * 2) - height * 2,
       };
       result.push(point);
     }
