@@ -97,7 +97,7 @@ async function init() {
         const new_bearing = player.getDirection()[0];
         const new_pitch = player.getDirection()[1];
 
-        let delta_bearing = bearing - new_bearing;
+        let delta_bearing = normalizeAngle(bearing - new_bearing);
         let delta_pitch = pitch - new_pitch;
 
         let horizontal_span = player.getSpan()[0];
@@ -124,6 +124,10 @@ async function init() {
       });
     });
   });
+
+  function normalizeAngle(angle: number): number {
+	  return (angle % 360 + 360) % 360;
+  }
 
   async function getPDK<T>(coords: Coords): Promise<T> {
     const response = await fetch(

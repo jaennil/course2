@@ -12,9 +12,9 @@ function init() {
     return __awaiter(this, void 0, void 0, function* () {
         let inputSearch = new ymaps.control.SearchControl({
             options: {
-                size: 'large',
-                provider: 'yandex#search'
-            }
+                size: "large",
+                provider: "yandex#search",
+            },
         });
         let myMap = new ymaps.Map("map", {
             center: [55.751244, 37.618423],
@@ -22,16 +22,18 @@ function init() {
             type: "yandex#map",
             controls: ["geolocationControl", "typeSelector", inputSearch],
         });
-        var datasetButton = new ymaps.control.Button('<b>Датасет</b>');
-        datasetButton.events.add('press', () => {
+        var datasetButton = new ymaps.control.Button("<b>Датасет</b>");
+        datasetButton.events.add("press", () => {
             window.open("https://data.mos.ru/opendata/2453", "_blank");
         });
         myMap.controls.add(datasetButton, {
-            float: "left"
+            float: "left",
         });
         let data = yield getCoords();
         data.forEach(function (point) {
-            let placemark = new ymaps.Placemark([point.Lat, point.Lng], { hintContent: "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3" }, { preset: 'islands#blueDotIcon' });
+            let placemark = new ymaps.Placemark([point.Lat, point.Lng], {
+                hintContent: "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3",
+            }, { preset: "islands#blueDotIcon" });
             myMap.geoObjects.add(placemark);
         });
         myMap.getPanoramaManager().then((manager) => {
@@ -68,7 +70,7 @@ function init() {
                 player.events.add("directionchange", function () {
                     const new_bearing = player.getDirection()[0];
                     const new_pitch = player.getDirection()[1];
-                    let delta_bearing = bearing - new_bearing;
+                    let delta_bearing = normalizeAngle(bearing - new_bearing);
                     let delta_pitch = pitch - new_pitch;
                     let horizontal_span = player.getSpan()[0];
                     let vertical_span = player.getSpan()[1];
@@ -92,6 +94,9 @@ function init() {
                 });
             }));
         });
+        function normalizeAngle(angle) {
+            return (angle % 360 + 360) % 360;
+        }
         function getPDK(coords) {
             return __awaiter(this, void 0, void 0, function* () {
                 const response = yield fetch("http://dubrovskih.ru:3000/api/v1/pdk/" + coords.lat + "," + coords.lng, {
