@@ -266,7 +266,13 @@ async function init() {
 
   let listItems: any = [];
   areas.forEach((area: any) => {
-    listItems.push(new ymaps.control.ListBoxItem(area));
+    listItems.push(
+      new ymaps.control.ListBoxItem({
+        data: {
+          content: area,
+        },
+      })
+    );
   });
 
   let myListBox = new ymaps.control.ListBox({
@@ -278,9 +284,10 @@ async function init() {
 
   myListBox.events.add("click", async function (e: any) {
     let item = e.get("target");
+    console.log(item);
     if (item != myListBox) {
       myMap.geoObjects.removeAll();
-      let coords: any = await getCoordsByAdmArea(item);
+      let coords: any = await getCoordsByAdmArea(item.data.get("content"));
       coords.forEach(function (point: any) {
         let placemark = new ymaps.Placemark(
           [point.Lat, point.Lng],
