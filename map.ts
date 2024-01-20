@@ -224,8 +224,40 @@ function animatePoint(point: Point) {
   }, 1);
 }
 
+async function getAdmAreas<T>(): Promise<T> {
+  const response = await fetch(
+    "http://dubrovskih.ru:3000/api/v1/admAreas",
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+  return await (response.json() as Promise<T>);
+}
+
 async function init() {
   let myMap = createMap();
+
+  let areas: any = await getAdmAreas()
+
+  let listItems: any = []
+  areas.forEach((area: any) => {
+	  listItems.push(new ymaps.control.ListBoxItem(area))
+  });
+
+    let myListBox = new ymaps.control.ListBox({
+      data: {
+        content: 'Выбрать административный округ'
+      },
+      items: listItems
+    });
+
+  myMap.controls.add(myListBox);
 
   myMap.controls.add(createDatasetButton(), {
     float: "left",

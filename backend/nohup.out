@@ -7884,3 +7884,5 @@ signal: terminated
 2024/01/20 02:25:02 error while scanning rows sql: Scan error on column index 4, name "MonthlyAveragePDKss": converting NULL to float64 is unsupported
 2024/01/20 02:25:02 error while scanning rows sql: Scan error on column index 4, name "MonthlyAveragePDKss": converting NULL to float64 is unsupported
 2024/01/20 02:25:02 64 0.24 0.1
+# github.com/jaennil/course2
+./main.go:152:27: cannot use admArea (variable of type string) as jaennilPoint value in argument to append

@@ -171,9 +171,35 @@ function animatePoint(point) {
         point.element.style.top = point.y + "px";
     }, 1);
 }
+function getAdmAreas() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const response = yield fetch("http://dubrovskih.ru:3000/api/v1/admAreas", {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+            },
+        });
+        if (!response.ok) {
+            throw new Error(response.statusText);
+        }
+        return yield response.json();
+    });
+}
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         let myMap = createMap();
+        let areas = yield getAdmAreas();
+        let listItems = [];
+        areas.forEach((area) => {
+            listItems.push(new ymaps.control.ListBoxItem(area));
+        });
+        let myListBox = new ymaps.control.ListBox({
+            data: {
+                content: 'Выбрать административный округ'
+            },
+            items: listItems
+        });
+        myMap.controls.add(myListBox);
         myMap.controls.add(createDatasetButton(), {
             float: "left",
         });
