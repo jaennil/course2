@@ -57,7 +57,12 @@ function addPlacemarks(map) {
         let coords = yield getCoords();
         coords.forEach(function (point) {
             let placemark = new ymaps.Placemark([point.Lat, point.Lng], {
-                hintContent: "Период измерения: " + point.Period + "<br>Концентрация загрязняющих веществ: " + point.Avg + " мг/м3",
+                iconContent: "station.png",
+                hintContent: "Период измерения: " +
+                    point.Period +
+                    "<br>Концентрация загрязняющих веществ: " +
+                    point.Avg +
+                    " мг/м3",
             }, { preset: "islands#blueDotIcon" });
             map.geoObjects.add(placemark);
         });

@@ -137,6 +137,23 @@ func handlePdk(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+func searchByAdmArea(c *gin.Context) {
+	log.Println("search by adm area")
+	var result []jaennilPoint
+	rows, err := db.Query("SELECT , longitude, MonthlyAverage, Period FROM pollution WHERE latitude IS NOT NULL")
+	handleError(err, "error occured while quering pollution table")
+	defer rows.Close()
+
+	var latitude, longitude, avg float64
+	var period string
+	for rows.Next() {
+		err := rows.Scan(&latitude, &longitude, &avg, &period)
+		handleError(err, "error while scanning rows")
+		result = append(result, jaennilPoint{Lat: latitude, Lng: longitude, Avg: avg, Period: period})
+	}
+	c.JSON(http.StatusOK, result)
+}
+
 func dsn() string {
 	return fmt.Sprintf("%s:%s@tcp(%s)/%s", username, password, hostname, dbname)
 }
