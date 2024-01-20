@@ -69,7 +69,7 @@ async function addPlacemarks(map: any) {
       [point.Lat, point.Lng],
       {
         hintContent:
-          "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3",
+          "Период измерения: " + point.Period + "\nКонцентрация загрязняющих веществ: " + point.Avg + " мг/м3",
       },
       { preset: "islands#blueDotIcon" }
     );

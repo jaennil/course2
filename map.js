@@ -57,7 +57,7 @@ function addPlacemarks(map) {
         let coords = yield getCoords();
         coords.forEach(function (point) {
             let placemark = new ymaps.Placemark([point.Lat, point.Lng], {
-                hintContent: "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3",
+                hintContent: "Период измерения: " + point.Period + "\nКонцентрация загрязняющих веществ: " + point.Avg + " мг/м3",
             }, { preset: "islands#blueDotIcon" });
             map.geoObjects.add(placemark);
         });
@@ -130,10 +130,13 @@ function handlePlayerDirectionChange(player, points, bearing, pitch, width, heig
         pitch = new_pitch;
     });
 }
+function getRndInteger(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
 function createPoints(count, width, height, color) {
     const result = [];
     for (let i = 0; i < count; i++) {
-        const size = (Math.random() + 1) * 5;
+        const size = getRndInteger(1, 5);
         const point_div = createPointDiv(color, size);
         const point = {
             element: point_div,
