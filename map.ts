@@ -113,6 +113,7 @@ async function init() {
           point.x += (delta_bearing / horizontal_span) * width;
           point.y -= (delta_pitch / vertical_span) * height;
           console.log("point", point.x, point.y);
+		  console.log("width", width)
           console.log("horspan", horizontal_span);
           console.log("d_bearing", delta_bearing);
           point.element.style.left = point.x + "px";
