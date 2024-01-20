@@ -31,7 +31,7 @@ function init() {
         });
         let data = yield getCoords();
         data.forEach(function (point) {
-            let placemark = new ymaps.Placemark([point.Lat, point.Lng], { hintContent: point.Period + " " + point.Avg + " мг/м3" }, { preset: 'islands#blueDotIcon' });
+            let placemark = new ymaps.Placemark([point.Lat, point.Lng], { hintContent: "Период: " + point.Period + " Концентрация: " + point.Avg + " мг/м3" }, { preset: 'islands#blueDotIcon' });
             myMap.geoObjects.add(placemark);
         });
         myMap.getPanoramaManager().then((manager) => {
